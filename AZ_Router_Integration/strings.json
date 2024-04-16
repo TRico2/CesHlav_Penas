@@ -1,0 +1,14 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "title": "Config connection of AZ router",
+          "description": "Fill in name of your device and its IP adress",
+          "data": {
+              "name": "Name",
+              "ip_address": "IP address"
+          }
+        }
+      }
+    }
+  }

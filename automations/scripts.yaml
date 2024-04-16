@@ -1,0 +1,56 @@
+prepnuti_do_vybijeni:
+  alias: FVE - Zapnutí exportu do sítě
+  sequence:
+  - device_id: f1fd78d2b641ea4e64ccc5b90035519b
+    domain: select
+    entity_id: select.inverter_operation_mode
+    type: select_option
+    option: eco_discharge
+  - device_id: f1fd78d2b641ea4e64ccc5b90035519b
+    domain: number
+    entity_id: number.grid_export_limit
+    type: set_value
+    value: 4500
+  - service: notify.notify
+    data:
+      message: FVE Zapnutí nuceného prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE Zapnutí nuceného prodeje
+  mode: single
+zablokovani_ohrevu_tuv:
+  alias: Zablokovani ohrevu TUV
+  sequence:
+  - device_id: 19bae376d3d0394b572197ef974c9aac
+    domain: number
+    entity_id: 81d23812ef13f059233ce9091485b95a
+    type: set_value
+    value: 30
+  mode: single
+  icon: mdi:water-boiler-off
+obnoveni_ohrevu_tuv:
+  alias: Obnoveni ohrevu TUV
+  sequence:
+  - device_id: 19bae376d3d0394b572197ef974c9aac
+    domain: number
+    entity_id: 81d23812ef13f059233ce9091485b95a
+    type: set_value
+    value: 65
+  mode: single
+  icon: mdi:water-boiler
+'konec_vybijeni':
+  alias: FVE - Vypnutí exportu do sítě
+  sequence:
+  - device_id: f1fd78d2b641ea4e64ccc5b90035519b
+    domain: select
+    entity_id: select.inverter_operation_mode
+    type: select_option
+    option: general
+  - device_id: f1fd78d2b641ea4e64ccc5b90035519b
+    domain: number
+    entity_id: number.grid_export_limit
+    type: set_value
+    value: 6400
+  - service: notify.notify
+    data:
+      message: FVE Vypnutí nuceného prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE vypnutí nuceného prodeje
+  mode: single

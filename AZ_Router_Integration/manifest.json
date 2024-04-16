@@ -1,0 +1,15 @@
+{
+    "domain": "azrouter",
+    "name": "AZ router",
+    "integration_type": "device",
+    "codeowners": [
+      "@TRico2"
+    ],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/TRico2/SOC_Penas",
+    "homekit": {},
+    "iot_class": "local_polling",
+    "requirements": [],
+    "version": "0.1.0"
+  }

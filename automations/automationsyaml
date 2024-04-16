@@ -1,0 +1,207 @@
+- id: '1707765733537'
+  alias: Výhodnější prodej než ohřev bojleru, plná baterie
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.current_spot_electricity_price
+    above: 3.3
+  condition:
+  - type: is_battery_level
+    condition: device
+    device_id: f1fd78d2b641ea4e64ccc5b90035519b
+    entity_id: sensor.battery_state_of_charge
+    domain: sensor
+    above: 99
+  - type: is_power
+    condition: device
+    device_id: f1fd78d2b641ea4e64ccc5b90035519b
+    entity_id: sensor.pv_power
+    domain: sensor
+    above: 0
+  action:
+  - service: script.zablokovani_ohrevu_tuv
+    data: {}
+  - service: notify.notify
+    data:
+      message: FVE Zapnutí prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE Zapnutí prodeje
+  mode: single
+
+- id: '1708027113580'
+  alias: Výhodnější prodej než ohřev bojleru, plná baterie - konec
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.current_spot_electricity_price
+    below: 3.3
+  condition: []
+  action:
+  - service: script.obnoveni_ohrevu_tuv
+    data: {}
+  - service: notify.notify
+    data:
+      message: FVE Obnovení ohřevu TUV a ukončení prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE Obnovení ohřevu TUV
+  mode: single
+
+  - id: '1707855215023'
+  alias: spotová cena je vyšší než náklady na prodej + nákup elektřiny od dodavatele
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.current_spot_electricity_price
+    above: 7.94
+  condition: []
+  action:
+  - service: script.prepnuti_do_vybijeni
+    data: {}
+  - service: notify.notify
+    data:
+      message: FVE Zapnutí prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE Zapnutí prodeje
+  mode: single
+
+- id: '1708036473530'
+  alias: spotová cena je vyšší než náklady na prodej + nákup elektřiny od dodavatele
+    - konec
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.current_spot_electricity_price
+    below: 7.94
+  condition: []
+  action:
+  - service: script.konec_vybijeni
+    data: {}
+  - service: notify.notify
+    data:
+      message: FVE Ukončení prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE Ukončení prodeje
+  mode: single
+
+- id: '1707855697146'
+  alias: hrozí nedostatek kapacity, víkend
+  description: ""
+  trigger:
+  - platform: template
+    value_template: >-
+    {{(states("sensor.energy_production_tomorrow") | float > 
+    (10 + 285 * 4180 * (states("number.azrouter_target_temperature") | int - 
+    states("sensor.azrouter_temperature") | int) | int + 
+    (states("sensor.battery_state_of_charge") / 100 * 10.65 | float ) | float + 
+    1.2 | float) | float) and 
+    (states("sensor.current_spot_electricity_price") | float >
+    states("sensor.spot_most_expensive_electricity_tomorrow") | float) 
+    }}
+  condition:
+  - condition: time
+    after: "18:00:00"
+    before: "00:00:00"
+    weekday:
+      - sat
+      - fri
+  action:
+  - service: script.prepnuti_do_vybijeni
+    data: {}
+  mode: single
+
+- id: '1707855621467'
+  alias: hrozí nedostatek kapacity, pracovní dny
+  description: ''
+  trigger: 
+  - platform: template
+    value_template: >-
+    {{(states("sensor.energy_production_tomorrow") | float > 
+    (6 + 285 * 4180 * (states("number.azrouter_target_temperature") | int - 
+    states("sensor.azrouter_temperature") | int) | int + 
+    (states("sensor.battery_state_of_charge") / 100 * 10.65 | float ) | float + 
+    1.2 | float) | float) and 
+    (states("sensor.current_spot_electricity_price") | float >
+    states("sensor.spot_most_expensive_electricity_tomorrow") | float) 
+    }}
+  condition:
+  - condition: time
+    after: '18:00:00'
+    before: 00:00:00
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - sun
+  action:
+  - service: script.prepnuti_do_vybijeni
+    data: {}
+  mode: single
+
+- id: '1708041150336'
+  alias: hrozí nedostatek kapacity, víkend-konec
+  description: ''
+  trigger: 
+  - platform: template
+    value_template: >- 
+    {{(states("sensor.energy_production_tomorrow") | float < 
+    (10 + 285 * 4180 * (states("number.azrouter_target_temperature") | int - 
+    states("sensor.azrouter_temperature") | int) | int + 
+    (states("sensor.battery_state_of_charge") / 100 * 10.65 | float ) | float + 
+    1.2 | float) | float) or 
+    (states("sensor.current_spot_electricity_price") | float <
+    states("sensor.spot_most_expensive_electricity_tomorrow") | float) 
+    }}
+  condition:
+  - condition: time
+    after: '18:00:00'
+    before: 00:00:00
+    weekday:
+    - sat
+    - fri
+  action:
+  - service: script.konec_vybijeni
+    data: {}
+  mode: single
+
+- id: '1708041185619'
+  alias: hrozí nedostatek kapacity, pracovní dny-konec
+  description: ''
+  trigger: 
+  - platform: template
+    value_template: >-
+    {{(states("sensor.energy_production_tomorrow") | float < 
+    (6 + 285 * 4180 * (states("number.azrouter_target_temperature") | int - 
+    states("sensor.azrouter_temperature") | int) | int + 
+    (states("sensor.battery_state_of_charge") / 100 * 10.65 | float ) | float + 
+    1.2 | float) | float) or 
+    (states("sensor.current_spot_electricity_price") | float <
+    states("sensor.spot_most_expensive_electricity_tomorrow") | float) 
+    }}
+  condition:
+  - condition: time
+    after: '18:00:00'
+    before: 00:00:00
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - sun
+  action:
+  - service: script.konec_vybijeni
+    data: {}
+  mode: single
+  
+- id: '1708856537535'
+  alias: konec prodeje - baterie pod 50
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.battery_state_of_charge
+    below: 50
+  condition: []
+  action:
+  - service: script.konec_vybijeni
+    data: {}
+  - service: notify.notify
+    data:
+      message: FVE Ukončení prodeje {{now().strftime("%H:%M:%S")}}
+      title: FVE Ukončení prodeje
+  mode: single
